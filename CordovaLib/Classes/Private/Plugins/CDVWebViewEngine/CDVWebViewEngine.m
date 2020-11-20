@@ -535,6 +535,38 @@ static void * KVOContext = &KVOContext;
     CDVViewController* vc = (CDVViewController*)self.viewController;
 
     /*
+     * 增加用UIApplication方式，拉起打开方式为scheme的app
+     * 需要配置LSApplicationQueriesSchemes增加对应的方式
+     * 云闪付 uppaysdk、uppaywallet、uppayx1、uppayx2、uppayx3
+     */
+    NSString *scheme = [url scheme];
+    UIApplication *app = [UIApplication sharedApplication];
+    
+    if ([scheme isEqualToString:@"itms-appss"] || 
+        [scheme isEqualToString:@"itms-apps"] || 
+        [scheme isEqualToString:@"tel"] || 
+        [scheme isEqualToString:@"sms"] || 
+        [scheme isEqualToString:@"mailto"] || 
+        [scheme isEqualToString:@"geo"] || 
+        [scheme isEqualToString:@"uppaysdk"] || 
+        [scheme isEqualToString:@"uppaywallet"] || 
+        [scheme isEqualToString:@"uppayx1"] || 
+        [scheme isEqualToString:@"uppayx2"] || 
+        [scheme isEqualToString:@"uppayx3"]) {
+        if ([app canOpenURL:url]) {
+            CGFloat version = [[[UIDevice currentDevice]systemVersion]floatValue];
+            if (version >= 10.0) {
+                [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+            } else {
+                [[UIApplication sharedApplication] openURL:url];
+            }
+
+            WKNavigationActionPolicy actionPolicy = WKNavigationActionPolicyAllow;
+            return decisionHandler(actionPolicy);
+        }
+    }
+
+    /*
      * Give plugins the chance to handle the url
      */
     BOOL anyPluginsResponded = NO;
